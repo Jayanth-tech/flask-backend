@@ -115,4 +115,5 @@ if __name__ == "__main__":
     print("Loading YOLO model...")
     from main import load_model
     load_model()
-    socketio.run(app, host="127.0.0.1", port=8001, debug=True)
+    # socketio.run(app, host="127.0.0.1", port=8001, debug=True)
+    app.run(debug=True)
