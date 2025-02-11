@@ -11,6 +11,10 @@ from pathlib import Path
 import tempfile
 from typing import List, Callable
 from fastapi import WebSocket
+from flask_socketio import emit
+from app import socketio
+
+
 
 # Global variables
 MODEL = None  # Initialize model as None
@@ -37,7 +41,7 @@ async def process_video(
     input_path: str, 
     output_path: str, 
     csv_path: str,
-    active_connections: List[WebSocket],
+    active_connections: List[str],
     broadcast_frame: Callable,
     broadcast_progress: Callable
 ):
@@ -128,9 +132,10 @@ async def process_video(
     # Notify clients of completion
     for connection in active_connections:
         try:
-            await connection.send_json({
+            socketio.emit('message', {
                 "type": "complete",
                 "downloadUrl": f"/download/{os.path.basename(zip_path)}"
-            })
+            }, room=connection)
+            print("Message emitted successfully")
         except Exception as e:
-            print(f"Error sending completion message: {e}") 
+            print(f"Error sending completion message: {e}")
