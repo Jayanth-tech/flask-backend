@@ -100,5 +100,5 @@ if __name__ == "__main__":
     print("Loading YOLO model...")
     from main import load_model  # Import here to avoid circular imports
     load_model()  # Load model at startup
-    # uvicorn.run("app:app", host="localhost", port=8001, reload=True)
-    uvicorn.run("app:app")
+    uvicorn.run("app:app", host="localhost", port=8001, reload=True)
+    # uvicorn.run("app:app")

@@ -1,5 +1,5 @@
 // Constants
-const API_URL = 'http://127.0.0.1:5000';
+const API_URL = 'http://localhost:8001';
 
 // DOM Elements
 const fileInput = document.getElementById('file-input');
@@ -34,22 +34,23 @@ startDetection.addEventListener('click', startDetectionProcess);
 downloadResults.addEventListener('click', downloadProcessedFiles);
 window.addEventListener('resize', handleCanvasResize);
 
-let socket;
+// WebSocket connection for real-time updates
+let ws = null;
 
 function initializeWebSocket() {
-    socket = io('http://127.0.0.1:5000', {
-        transports: ['websocket'],
-        cors: {
-            origin: "http://127.0.0.1:5000"
-        }
-    });
+    if (ws) {
+        ws.close();
+    }
 
-    socket.on('connect', () => {
-        console.log('Connected to server');
-    });
+    ws = new WebSocket('ws://localhost:8001/ws');
 
-    // Handle all messages through the 'message' event
-    socket.on('message', (data) => {
+    ws.onopen = () => {
+        console.log('WebSocket connection established');
+    };
+
+    ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+
         if (data.type === 'progress') {
             updateProgress(data.progress);
         } else if (data.type === 'frame') {
@@ -57,17 +58,19 @@ function initializeWebSocket() {
         } else if (data.type === 'complete') {
             processingComplete(data.downloadUrl);
         }
-    });
+    };
 
-    socket.on('error', (error) => {
-        console.error('Socket.IO error:', error);
-    });
+    ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+        alert('Connection error. Please try again.');
+    };
 
-    socket.on('disconnect', () => {
-        console.log('Disconnected from server');
-    });
+    ws.onclose = () => {
+        console.log('WebSocket connection closed');
+    };
 }
 
+// File Handling Functions
 function handleFileSelect(event) {
     const file = event.target.files[0];
     if (file) {
@@ -84,10 +87,11 @@ function validateAndPreviewFile(file) {
     selectedFile.textContent = file.name;
     startDetection.disabled = false;
 
+    // Show video preview section
     videoPreview.classList.remove('hidden');
     previewPlayer.classList.remove('hidden');
-    previewCanvas.classList.add('hidden');  // Hide canvas initially
 
+    // Create temporary video element to get dimensions
     const video = document.createElement('video');
     video.onloadedmetadata = () => {
         previewCanvas.width = video.videoWidth;
@@ -110,6 +114,7 @@ function handleCanvasResize() {
     }
 }
 
+// Detection Process Functions
 async function startDetectionProcess() {
     const file = fileInput.files[0];
     if (!file) return;
@@ -160,6 +165,7 @@ function updatePreviewFrame(frameData) {
         return;
     }
 
+    // Hide video element and show canvas on receiving frame data
     previewPlayer.classList.add('hidden');
     previewCanvas.classList.remove('hidden');
 
@@ -171,40 +177,17 @@ function updatePreviewFrame(frameData) {
     img.src = `data:image/jpeg;base64,${frameData}`;
 }
 
-// function processingComplete(downloadUrl) {
-//     progressText.textContent = 'Processing complete!';
-//     resultsSection.classList.remove('hidden');
-//     downloadResults.dataset.url = downloadUrl;
-//     startDetection.disabled = false;
-
-//     if (socket) {
-//         socket.disconnect();
-//         socket = null;
-//     }
-// }
-
-
 function processingComplete(downloadUrl) {
     progressText.textContent = 'Processing complete!';
     resultsSection.classList.remove('hidden');
-
-    if (!downloadUrl) {
-        console.error('No download URL provided!');
-        return;
-    }
-
-    downloadResults.dataset.url = downloadUrl;  // Correctly set the download URL
-    downloadResults.classList.remove('hidden'); // Ensure button is visible
+    downloadResults.dataset.url = downloadUrl;
     startDetection.disabled = false;
 
-    if (socket) {
-        socket.disconnect();
-        socket = null;
+    if (ws) {
+        ws.close();
+        ws = null;
     }
 }
-
-
-
 
 async function downloadProcessedFiles() {
     const downloadUrl = downloadResults.dataset.url;
@@ -227,4 +210,5 @@ async function downloadProcessedFiles() {
     }
 }
 
+// Initial canvas resize
 handleCanvasResize();
