@@ -11,7 +11,7 @@ from pathlib import Path
 import tempfile
 from typing import List, Callable
 from fastapi import WebSocket
-from flask_socketio import emit
+# from flask_socketio import emit
 # from app import socketio
 
 
