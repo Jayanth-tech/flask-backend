@@ -129,13 +129,22 @@ async def process_video(
         if os.path.exists(csv_path):
             zipf.write(csv_path, "detections.csv")
     
-    # Notify clients of completion
+    # # Notify clients of completion
+    # for connection in active_connections:
+    #     try:
+    #         socketio.emit('message', {
+    #             "type": "complete",
+    #             "downloadUrl": f"/download/{os.path.basename(zip_path)}"
+    #         }, room=connection)
+    #         print("Message emitted successfully")
+    #     except Exception as e:
+    #         print(f"Error sending completion message: {e}")
+
     for connection in active_connections:
-        try:
-            socketio.emit('message', {
-                "type": "complete",
-                "downloadUrl": f"/download/{os.path.basename(zip_path)}"
-            }, room=connection)
-            print("Message emitted successfully")
-        except Exception as e:
-            print(f"Error sending completion message: {e}")
+            try:
+                await connection.send_json({
+                    "type": "complete",
+                    "downloadUrl": f"/download/{os.path.basename(zip_path)}"
+                })
+            except Exception as e:
+                print(f"Error sending completion message: {e}") 
