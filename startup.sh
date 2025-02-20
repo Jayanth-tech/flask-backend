@@ -30,4 +30,3 @@ apt-get install -y \
 pip install --no-cache-dir opencv-python-headless
 
 # Start the application with Gunicorn and Uvicorn worker
-gunicorn -w 2 -k uvicorn.workers.UvicornWorker app:app
