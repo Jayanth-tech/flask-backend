@@ -1,7 +1,9 @@
+from main import load_model, process_video
 from fastapi import FastAPI, UploadFile, File, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+
 import asyncio
 from typing import List
 import os
@@ -75,6 +77,7 @@ async def upload_video(video: UploadFile = File(...)):
         with open(input_path, "wb") as buffer:
             buffer.write(await video.read())
     except Exception as e:
+        print(f"File save error: {e}")
         return {"status": "error", "message": f"Failed to save video: {str(e)}"}
 
     # Start processing in background
@@ -100,5 +103,5 @@ if __name__ == "__main__":
     print("Loading YOLO model...")
     from main import load_model  # Import here to avoid circular imports
     load_model()  # Load model at startup
-    # uvicorn.run("app:app", host="localhost", port=8001, reload=True)
-    uvicorn.run("app:app")
+    uvicorn.run("app:app", host="localhost", port=8001, reload=True)
+    # uvicorn.run("app:app")

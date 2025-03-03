@@ -28,14 +28,18 @@ CLASS_NAMES = [
 
 def load_model():
     global MODEL
-    if MODEL is None:
-        try:
-            MODEL = YOLO("ppe.pt")
-            print("Model loaded successfully")
-        except Exception as e:
-            print(f"Error loading model: {e}")
-            return None
-    return MODEL
+    try:
+        if MODEL is None:
+            try:
+                MODEL = YOLO("ppe.pt")
+                print("Model loaded successfully")
+            except Exception as e:
+                print(f"Error loading model: {e}")
+                return None
+        return MODEL
+    except Exception as e:
+        print(f"Error loading model: {e}")
+        return None
 
 async def process_video(
     input_path: str, 
