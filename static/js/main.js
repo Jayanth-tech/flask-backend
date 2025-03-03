@@ -1,6 +1,6 @@
 // Constants
-const API_URL = 'https://ppe-kit-fast-api.azurewebsites.net';
-// const API_URL = 'http://localhost:8001';
+// const API_URL = 'https://ppe-kit-fast-api.azurewebsites.net';
+const API_URL = 'http://localhost:8001';
 
 // DOM Elements
 const fileInput = document.getElementById('file-input');
@@ -43,8 +43,8 @@ function initializeWebSocket() {
         ws.close();
     }
 
-    ws = new WebSocket('wss://ppe-kit-fast-api.azurewebsites.net/ws');
-    // ws = new WebSocket('ws://localhost:8001/ws');
+    // ws = new WebSocket('wss://ppe-kit-fast-api.azurewebsites.net/ws');
+    ws = new WebSocket('ws://localhost:8001/ws');
 
     ws.onopen = () => {
         console.log('WebSocket connection established');

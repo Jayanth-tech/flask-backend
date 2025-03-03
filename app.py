@@ -65,6 +65,7 @@ async def upload_video(video: UploadFile = File(...)):
     
     # Ensure model is loaded
     if load_model() is None:
+        print("Error: Model not loaded")
         return {"status": "error", "message": "Model loading failed"}
 
     temp_dir = tempfile.mkdtemp()
@@ -75,18 +76,27 @@ async def upload_video(video: UploadFile = File(...)):
     # Save uploaded video
     try:
         with open(input_path, "wb") as buffer:
-            buffer.write(await video.read())
-    except Exception as e:
+            try:
+                buffer.write(await video.read())
+            except Exception as e:
+                print(f"File write error: {e}")
+                return {"status": "error", "message": f"Failed to write file: {str(e)}"}
+
+    except Exception as e:  
         print(f"File save error: {e}")
         return {"status": "error", "message": f"Failed to save video: {str(e)}"}
 
     # Start processing in background
-    asyncio.create_task(process_video(input_path, output_path, csv_path, active_connections, broadcast_frame, broadcast_progress))
-    return {"status": "success", "message": "Processing started"}
+    try:
+        asyncio.create_task(process_video(input_path, output_path, csv_path, active_connections, broadcast_frame, broadcast_progress))
+    except Exception as e:
+        print(f"Video processing error: {e}")
+        return {"status": "error", "message": f"Processing failed: {str(e)}"}
+
 
 @app.get("/download/{filename}")
 async def download_results(filename: str):
-    temp_dir = tempfile.gettempdir()
+    temp_dir = tempfile.gettempdir() 
     file_path = os.path.join(temp_dir, filename)
     
     if not os.path.exists(file_path):
